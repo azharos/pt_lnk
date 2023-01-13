@@ -53,9 +53,9 @@ export default function Dashboard() {
 	const logout = async () => {
 		const cookies = parseCookies();
 		const { token } = cookies;
-
-		const resLogout = http.post("/logout", { headers: { auth: token } });
-
+		// console.log(token);
+		const resLogout = await http.get("/logout", { headers: { auth: token } });
+		// console.log(resLogout);
 		if (resLogout.data.status == "SUCCESS") {
 			destroyCookie(null, "token");
 			history.replace("/login");

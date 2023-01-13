@@ -20,6 +20,62 @@ router.get("/user", async function (req, res) {
 	} catch (error) {
 		return res.json({
 			status: "ERROR",
+			data: "error catch",
+		});
+	}
+});
+
+router.get("/logout", async function (req, res) {
+	try {
+		const auth = req.headers.auth;
+		const now = new Date().getTime();
+
+		const data = jwt.decode(auth);
+		const record = await Record.findById(data.record_id);
+
+		const login = record.login;
+		const logout = now;
+		const selisih = logout - login;
+
+		// Update Record
+		const mnt = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60));
+		const dtk = Math.floor((selisih % (1000 * 60)) / 1000);
+
+		// hitung detik
+		const time = mnt * 60 + dtk;
+
+		// 15 mnt = 900dtk
+		// 30 mnt = 1800dtk
+		// 45 mnt = 2700dtk
+		// 60 mnt = 3600dtk
+
+		let str;
+		if (time < 900) {
+			str = "< 15 menit";
+		} else if (time >= 900 && time < 1800) {
+			str = "> 15 menit & < 30 menit";
+		} else if (time >= 1800 && time < 2700) {
+			str = "> 30 menit & < 45 menit";
+		} else {
+			str = "> 45 menit & < 60 menit";
+		}
+
+		await Record.updateOne(
+			{ _id: data.record_id },
+			{
+				$set: {
+					logout: logout,
+					longtime: str,
+				},
+			}
+		);
+
+		return res.json({
+			status: "SUCCESS",
+		});
+	} catch (error) {
+		return res.json({
+			status: "ERROR",
 			data: error,
 		});
 	}
@@ -77,62 +133,6 @@ router.post("/login", async function (req, res) {
 			status: "SUCCESS",
 			data: v,
 			token: accessToken,
-		});
-	} catch (error) {
-		return res.json({
-			status: "ERROR",
-			data: error,
-		});
-	}
-});
-
-router.post("/logout", async function (req, res) {
-	try {
-		const auth = req.headers.auth;
-		const now = new Date().getTime();
-
-		const data = jwt.decode(auth);
-		const record = await Record.findById(data.record_id);
-
-		const login = record.login;
-		const logout = now;
-		const selisih = logout - login;
-
-		// Update Record
-		const mnt = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60));
-		const dtk = Math.floor((selisih % (1000 * 60)) / 1000);
-
-		// hitung detik
-		const time = mnt * 60 + dtk;
-
-		// 15 mnt = 900dtk
-		// 30 mnt = 1800dtk
-		// 45 mnt = 2700dtk
-		// 60 mnt = 3600dtk
-
-		let str;
-		if (time < 900) {
-			str = "< 15 menit";
-		} else if (time >= 900 && time < 1800) {
-			str = "> 15 menit & < 30 menit";
-		} else if (time >= 1800 && time < 2700) {
-			str = "> 30 menit & < 45 menit";
-		} else {
-			str = "> 45 menit & < 60 menit";
-		}
-
-		await Record.updateOne(
-			{ _id: data.record_id },
-			{
-				$set: {
-					logout: logout,
-					longtime: str,
-				},
-			}
-		);
-
-		return res.json({
-			status: "SUCCESS",
 		});
 	} catch (error) {
 		return res.json({
