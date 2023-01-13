@@ -20,7 +20,7 @@ router.get("/user", async function (req, res) {
 	} catch (error) {
 		return res.json({
 			status: "ERROR",
-			data: "error catch",
+			data: error,
 		});
 	}
 });
